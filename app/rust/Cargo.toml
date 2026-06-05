@@ -24,4 +24,4 @@ uuid = { version = "1.11.1", features = ["v4"] }
 # sys_metrics 의 loadavg.rs 는 rqs_lib 에서 사용되지 않으므로
 # dummy crate 로 대체한다.
 [patch."https://github.com/Martichou/sys_metrics"]
-sys_metrics = { path = "../../rquickshare/sys_metrics_stub" }
+sys_metrics = { path = "../../rqs_sys_metrics_stub" }

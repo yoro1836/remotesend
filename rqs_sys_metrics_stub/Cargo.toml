@@ -1,0 +1,10 @@
+[package]
+name = "sys_metrics"
+version = "0.1.0"
+edition = "2021"
+
+# rquickshare 가 sys_metrics 에서 사용하는 유일한 기능은 host::get_hostname().
+# 원본 Martichou/sys_metrics fork 의 CPU 모듈이 Android 크로스 컴파일에서
+# libc::getloadavg 미지원으로 빌드 실패하는 문제를 회피하기 위한 스텁.
+[dependencies]
+hostname = "0.4"

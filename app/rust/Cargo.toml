@@ -18,3 +18,10 @@ tokio = { version = "1.49", features = ["full"] }
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.22" }
 uuid = { version = "1.11.1", features = ["v4"] }
+
+# rquickshare → sys_metrics (Martichou fork) 가 Android 타겟에서
+# libc::getloadavg 를 사용해 빌드 실패하는 문제를 우회.
+# sys_metrics 의 loadavg.rs 는 rqs_lib 에서 사용되지 않으므로
+# dummy crate 로 대체한다.
+[patch."https://github.com/Martichou/sys_metrics"]
+sys_metrics = { path = "../../rquickshare/sys_metrics_stub" }

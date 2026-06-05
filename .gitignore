@@ -10,4 +10,6 @@
 
 # FVM Version Cache
 .fvm/
-rquickshare/
+# rquickshare 소스는 CI에서 별도 클론, sys_metrics_stub만 커밋
+rquickshare/*
+!rquickshare/sys_metrics_stub/

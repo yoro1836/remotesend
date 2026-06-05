@@ -35,7 +35,11 @@ jobs:
         run: sh scripts/remove_proprietary_dependencies.sh
 
       - name: Clone rquickshare (Quick Share dependency)
-        run: git clone https://github.com/Martichou/rquickshare.git /tmp/rquickshare
+        run: |
+          git clone https://github.com/Martichou/rquickshare.git /tmp/rquickshare
+          # sys_metrics (Martichou fork) uses libc::getloadavg which does not exist on Android.
+          # rqs_lib only uses sys_metrics::host::get_hostname(), so replace with stub.
+          sed -i 's|sys_metrics = { git = "https://github.com/Martichou/sys_metrics" }|sys_metrics = { path = "../../rqs_sys_metrics_stub" }|' /tmp/rquickshare/core_lib/Cargo.toml
 
       - name: Copy files to env.APK_BUILD_DIR
         run: |

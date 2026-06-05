@@ -34,10 +34,14 @@ jobs:
       - name: Remove proprietary dependencies
         run: sh scripts/remove_proprietary_dependencies.sh
 
+      - name: Clone rquickshare (Quick Share dependency)
+        run: git clone https://github.com/Martichou/rquickshare.git /tmp/rquickshare
+
       - name: Copy files to env.APK_BUILD_DIR
         run: |
           mkdir -p $APK_BUILD_DIR
           cp -r . $APK_BUILD_DIR
+          cp -r /tmp/rquickshare $APK_BUILD_DIR/rquickshare
 
       - name: Decode key.properties file
         working-directory: ${{ env.APK_BUILD_DIR }}

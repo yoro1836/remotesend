@@ -35,9 +35,15 @@ class SignalingDiscovery extends DiscoveryMethod with SignalingDiscoveryMappable
   const SignalingDiscovery({required this.signalingServer});
 }
 
+@MappableClass()
+class QuickShareDiscovery extends DiscoveryMethod with QuickShareDiscoveryMappable {
+  const QuickShareDiscovery();
+}
+
 enum TransmissionMethod {
   http('HTTP'),
-  webrtc('WebRTC');
+  webrtc('WebRTC'),
+  quickShare('Quick Share');
 
   final String label;
 
@@ -68,10 +74,13 @@ class Device with DeviceMappable {
   Set<TransmissionMethod> get transmissionMethods {
     bool http = false;
     bool webrtc = false;
+    bool quickShare = false;
 
     for (final method in discoveryMethods) {
       if (method is SignalingDiscovery) {
         webrtc = true;
+      } else if (method is QuickShareDiscovery) {
+        quickShare = true;
       } else {
         http = true;
       }
@@ -83,6 +92,9 @@ class Device with DeviceMappable {
     }
     if (webrtc) {
       methods.add(TransmissionMethod.webrtc);
+    }
+    if (quickShare) {
+      methods.add(TransmissionMethod.quickShare);
     }
 
     return methods;

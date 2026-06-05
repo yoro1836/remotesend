@@ -90,6 +90,7 @@ const _deviceType = 'ls_device_type';
 const _deviceModel = 'ls_device_model';
 const _shareViaLinkAutoAccept = 'ls_share_via_link_auto_accept';
 const _advancedSettingsKey = 'ls_advanced_settings';
+const _quickShareEnabled = 'ls_quick_share_enabled';
 
 final persistenceProvider = Provider<PersistenceService>((ref) {
   throw Exception('persistenceProvider not initialized');
@@ -425,6 +426,14 @@ class PersistenceService {
 
   Future<void> setQuickSaveFromFavorites(bool quickSaveFromFavorites) async {
     await _prefs.setBool(_quickSaveFromFavorites, quickSaveFromFavorites);
+  }
+
+  bool isQuickShareEnabled() {
+    return _prefs.getBool(_quickShareEnabled) ?? false;
+  }
+
+  Future<void> setQuickShareEnabled(bool quickShareEnabled) async {
+    await _prefs.setBool(_quickShareEnabled, quickShareEnabled);
   }
 
   String? getReceivePin() {

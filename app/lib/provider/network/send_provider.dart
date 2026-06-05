@@ -20,6 +20,7 @@ import 'package:localsend_app/pages/send_page.dart';
 import 'package:localsend_app/provider/device_info_provider.dart';
 import 'package:localsend_app/provider/http_provider.dart';
 import 'package:localsend_app/provider/progress_provider.dart';
+import 'package:localsend_app/provider/network/quick_share_provider.dart';
 import 'package:localsend_app/provider/selection/selected_sending_files_provider.dart';
 import 'package:localsend_app/provider/settings_provider.dart';
 import 'package:localsend_app/rust/api/http.dart' as rust_http;
@@ -60,6 +61,16 @@ class SendNotifier extends Notifier<Map<String, SendSessionState>> {
     required List<CrossFile> files,
     required bool background,
   }) async {
+    // Quick Share device → use Quick Share protocol
+    if (target.discoveryMethods.any((m) => m is QuickShareDiscovery)) {
+      await _startQuickShareSession(
+        target: target,
+        files: files,
+        background: background,
+      );
+      return;
+    }
+
     final client = ref.read(httpProvider).v2;
     final sessionId = _uuid.v4();
 
@@ -592,6 +603,97 @@ class SendNotifier extends Notifier<Map<String, SendSessionState>> {
       sessionId: sessionId,
       state: (s) => s?.copyWith(background: background),
     );
+  }
+
+  /// Quick Share 프로토콜로 파일을 전송한다.
+  Future<void> _startQuickShareSession({
+    required Device target,
+    required List<CrossFile> files,
+    required bool background,
+  }) async {
+    final sessionId = _uuid.v4();
+
+    final requestState = SendSessionState(
+      sessionId: sessionId,
+      remoteSessionId: null,
+      background: background,
+      status: SessionStatus.waiting,
+      target: target,
+      files: Map.fromEntries(
+        files.map((file) {
+          final id = _uuid.v4();
+          return MapEntry(
+            id,
+            SendingFile(
+              file: FileDto(
+                id: id,
+                fileName: file.name,
+                size: file.size,
+                fileType: file.fileType,
+                hash: null,
+                preview: null,
+                metadata: file.lastModified != null || file.lastAccessed != null
+                    ? FileMetadata(
+                        lastModified: file.lastModified,
+                        lastAccessed: file.lastAccessed,
+                      )
+                    : null,
+              ),
+              status: FileStatus.queue,
+              token: null,
+              thumbnail: file.thumbnail,
+              asset: file.asset,
+              path: file.path,
+              bytes: file.bytes,
+              errorMessage: null,
+            ),
+          );
+        }),
+      ),
+      startTime: null,
+      endTime: null,
+      sendingTasks: [],
+      errorMessage: null,
+    );
+
+    state = state.updateSession(
+      sessionId: sessionId,
+      state: (_) => requestState,
+    );
+
+    try {
+      final paths = files
+          .where((f) => f.path != null)
+          .map((f) => f.path!)
+          .toList();
+
+      await ref.notifier(quickShareProvider).sendFiles(
+        ip: target.ip!,
+        port: target.port,
+        name: target.alias,
+        files: paths,
+      );
+
+      state = state.updateSession(
+        sessionId: sessionId,
+        state: (s) => s!.copyWith(
+          status: SessionStatus.sending,
+          startTime: DateTime.now().toUtc().millisecondsSinceEpoch,
+        ),
+      );
+
+      _logger.info('Quick Share send initiated: $sessionId');
+    } catch (e) {
+      _logger.warning('Quick Share send failed: $e');
+      state = state.updateSession(
+        sessionId: sessionId,
+        state: (s) => s!.copyWith(
+          status: SessionStatus.finishedWithErrors,
+          errorMessage: e.toString(),
+          endTime: DateTime.now().toUtc().millisecondsSinceEpoch,
+        ),
+      );
+    }
   }
 }
 

@@ -21,6 +21,7 @@ import 'package:localsend_app/provider/animation_provider.dart';
 import 'package:localsend_app/provider/app_arguments_provider.dart';
 import 'package:localsend_app/provider/device_info_provider.dart';
 import 'package:localsend_app/provider/network/nearby_devices_provider.dart';
+import 'package:localsend_app/provider/network/quick_share_provider.dart';
 import 'package:localsend_app/provider/network/server/server_provider.dart';
 import 'package:localsend_app/provider/network/webrtc/signaling_provider.dart';
 import 'package:localsend_app/provider/persistence_provider.dart';
@@ -223,6 +224,16 @@ Future<void> postInit(BuildContext context, Ref ref, bool appStart) async {
     ref.redux(nearbyDevicesProvider).dispatchAsync(StartMulticastListener()); // ignore: unawaited_futures
   } catch (e) {
     _logger.warning('Starting multicast listener failed', e);
+  }
+
+  // Start Quick Share service if enabled in settings
+  if (ref.read(settingsProvider).quickShareEnabled) {
+    try {
+      await ref.notifier(quickShareProvider).startService();
+      ref.notifier(quickShareProvider).startChannelListener();
+    } catch (e) {
+      _logger.warning('Starting Quick Share service failed', e);
+    }
   }
 
   ref.redux(signalingProvider).dispatch(SetupSignalingConnection());

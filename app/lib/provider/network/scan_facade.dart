@@ -6,6 +6,7 @@ import 'package:localsend_app/pages/home_page_controller.dart';
 import 'package:localsend_app/provider/favorites_provider.dart';
 import 'package:localsend_app/provider/local_ip_provider.dart';
 import 'package:localsend_app/provider/network/nearby_devices_provider.dart';
+import 'package:localsend_app/provider/network/quick_share_provider.dart';
 import 'package:localsend_app/provider/settings_provider.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 
@@ -31,6 +32,13 @@ class StartSmartScan extends AsyncGlobalAction {
     final favorites = ref.read(favoritesProvider);
     final https = ref.read(settingsProvider).https;
     await ref.redux(nearbyDevicesProvider).dispatchAsync(StartFavoriteScan(devices: favorites, https: https));
+
+    // Start Quick Share discovery in parallel
+    try {
+      await ref.notifier(quickShareProvider).startDiscovery();
+    } catch (_) {
+      // Quick Share may not be available on this platform
+    }
 
     if (!forceLegacy) {
       // Wait a bit before trying the legacy method.

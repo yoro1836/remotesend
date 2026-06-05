@@ -70,6 +70,7 @@ class SettingsService extends PureNotifier<SettingsState> {
     shareViaLinkAutoAccept: _persistence.getShareViaLinkAutoAccept(),
     discoveryTimeout: _persistence.getDiscoveryTimeout(),
     advancedSettings: _persistence.getAdvancedSettingsEnabled(),
+    quickShareEnabled: _persistence.isQuickShareEnabled(),
   );
 
   Future<void> setAlias(String alias) async {
@@ -98,6 +99,14 @@ class SettingsService extends PureNotifier<SettingsState> {
     state = state.copyWith(
       advancedSettings: isEnabled,
     );
+  }
+
+  Future<void> setQuickShareEnabled(bool quickShareEnabled) async {
+    await _persistence.setQuickShareEnabled(quickShareEnabled);
+    state = state.copyWith(
+      quickShareEnabled: quickShareEnabled,
+    );
+    // Note: Quick Share 서비스 시작/중지는 UI 코드에서 처리한다.
   }
 
   Future<void> setLocale(AppLocale? locale) async {
